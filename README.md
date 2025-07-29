@@ -1,6 +1,6 @@
 # 🧠 LLM-AgentLab
 
-Build your own ChatGPT-like AI Agent with memory, tools, and RAG — all running locally or through APIs. This project brings together everything you'd expect from a modern generalist AI: semantic memory, document understanding, tool use, and more.
+Build your own ChatGPT-like AI Agent with memory, tools, and RAG, all running locally or through APIs. This project brings together everything you'd expect from a modern generalist AI: semantic memory, document understanding, tool use, and more.
 
 ---
 
