@@ -16,3 +16,4 @@ torch
 accelerate
 peft
 bitsandbytes
+langchain-tavily
