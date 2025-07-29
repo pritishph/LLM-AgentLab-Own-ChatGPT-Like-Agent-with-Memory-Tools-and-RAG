@@ -38,10 +38,6 @@ llm-agentlab/
 ├── index.faiss # Vector DB index
 └── chunks.pkl # Stored document chunks
 
-yaml
-Copy
-Edit
-
 ---
 
 ## 📦 Installation
@@ -61,11 +57,11 @@ OpenAI API Key
 
 Optional: NVIDIA GPU if fine-tuning
 
+---
+
+
 ##🧠 Usage
 🛠️ Local CLI Agent
-bash
-Copy
-Edit
 python tool_agent.py
 🌐 Run FastAPI Server
 bash
@@ -73,12 +69,12 @@ Copy
 Edit
 uvicorn main_api:app --reload --port 8000
 🖥️ Run Streamlit Frontend
-bash
-Copy
-Edit
 streamlit run app_ui.py
 Upload a file, chat with the agent, and get contextual responses.
 
+
+
+---
 ##🧪 Fine-Tuning (Optional)
 Fine-tune a small LLM (like phi-2) using QLoRA:
 
@@ -88,7 +84,7 @@ Edit
 python finetune/qlora_finetune.py
 ⚠️ Note: You’ll need a GPU (>= 12GB VRAM) or cloud provider like RunPod or Colab.
 
-📁 File Uploads
+##📁 File Uploads
 The Streamlit UI supports .pdf, .csv, .txt, and .md file uploads for RAG-based Q&A. Uploaded files are chunked, embedded using sentence-transformers, and stored in a FAISS vector DB.
 
 ##🧠 Memory System
