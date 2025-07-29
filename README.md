@@ -61,7 +61,7 @@ OpenAI API Key
 
 Optional: NVIDIA GPU if fine-tuning
 
-🧠 Usage
+##🧠 Usage
 🛠️ Local CLI Agent
 bash
 Copy
@@ -79,7 +79,7 @@ Edit
 streamlit run app_ui.py
 Upload a file, chat with the agent, and get contextual responses.
 
-🧪 Fine-Tuning (Optional)
+##🧪 Fine-Tuning (Optional)
 Fine-tune a small LLM (like phi-2) using QLoRA:
 
 bash
@@ -91,10 +91,10 @@ python finetune/qlora_finetune.py
 📁 File Uploads
 The Streamlit UI supports .pdf, .csv, .txt, and .md file uploads for RAG-based Q&A. Uploaded files are chunked, embedded using sentence-transformers, and stored in a FAISS vector DB.
 
-🧠 Memory System
+##🧠 Memory System
 Every message you send is embedded and stored using FAISS. Future queries retrieve similar past messages to preserve context.
 
-🤖 Tools Supported
+##🤖 Tools Supported
 Calculator
 
 Python Code Interpreter
@@ -107,7 +107,7 @@ RAG over Uploaded Documents
 
 You can easily add your own tools via agent_tools.py.
 
-📌 To-Do / Improvements
+##📌 To-Do / Improvements
  Add multimodal support (e.g. image inputs with BLIP)
 
  Enable LoRA fine-tuning via Colab or RunPod
@@ -116,7 +116,7 @@ You can easily add your own tools via agent_tools.py.
 
  Add auth system for multiple users
 
-🙌 Credits
+##🙌 Credits
 Built using:
 
 LangChain
