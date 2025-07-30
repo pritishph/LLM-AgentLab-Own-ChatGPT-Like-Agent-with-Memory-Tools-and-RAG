@@ -70,7 +70,12 @@ python finetune/qlora_finetune.py
 
 
 ## 📁 File Uploads
-The Streamlit UI supports .pdf, .csv, .txt, and .md uploads for RAG-based Q&A. Uploaded files are chunked, embedded with sentence-transformers, and stored in FAISS.
+* The Streamlit UI supports .pdf, .csv, .txt, and .md uploads for RAG-based Q&A. Uploaded files are chunked, embedded with sentence-transformers, and stored in FAISS.
+  
+* Image Uploads (Multimodal):
+Upload .jpg, .jpeg, or .png images and ask questions, get captions, or generate content based on the image.
+
+
 
 ---
 
@@ -92,6 +97,8 @@ All messages are embedded and stored via FAISS. Future inputs retrieve similar p
 
 * RAG over Uploaded Documents
 
+* Image Captioner & Multimodal Q&A (upload images and ask questions)
+
 You can add your own in agent_tools.py.
 
 ---
@@ -108,6 +115,8 @@ You can add your own in agent_tools.py.
 * Streamlit
 
 * FastAPI
+
+* OpenAI API (or Gemini, BLIP, etc. for images)
 
 
 
