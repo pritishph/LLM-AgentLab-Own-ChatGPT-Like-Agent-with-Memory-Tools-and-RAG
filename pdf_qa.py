@@ -21,7 +21,9 @@ def extract_text_from_pdfs(folder_path):
             path = os.path.join(folder_path, filename)
             doc = fitz.open(path)
             for page in doc:
-                full_text += page.get_text()
+                page_text = page.get_text()
+                print(f"Text from page in {filename}: {repr(page_text[:200])}")
+                full_text += page_text
     return full_text
 
 # 2. Chunk text into pieces
