@@ -3,9 +3,11 @@ from langchain_openai import ChatOpenAI
 import math
 from langchain_tavily import TavilySearch
 from rag_tool import rag_query_tool
+from multimodal.image_tools import caption_image
 from dotenv import load_dotenv
 load_dotenv()
 
+# ---- AGENT TOOLS: Now with PythonExecutor fallback ----
 
 # 1. Simple calculator tool
 def calculate(expression: str) -> str:
@@ -16,14 +18,18 @@ def calculate(expression: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
-# 2. Basic Python code executor
+# 2. Basic Python code executor with fallback marker
 def run_python_code(code: str) -> str:
     try:
         exec_globals = {}
         exec(code, exec_globals)
-        return str(exec_globals.get("result", "No result variable found. Code executed."))
+        result = exec_globals.get("result", None)
+        if result is not None:
+            return str(result)
+        else:
+            return "NO_EXEC_RESULT"  # triggers LLM fallback in your agent
     except Exception as e:
-        return f"Error: {e}"
+        return f"NO_EXEC_RESULT (Error: {e})"
 
 tools = [
     Tool(
@@ -34,9 +40,17 @@ tools = [
     Tool(
         name="PythonExecutor",
         func=run_python_code,
-        description="Executes Python code. Input MUST be valid Python code that defines and runs everything directly. Return values should be stored in a variable called 'result'"
+        description="Executes Python code. Input MUST be valid Python code that defines and runs everything directly. Return values should be stored in a variable called 'result'. If not, agent will fallback to LLM."
     )
 ]
+
+tools.append(
+    Tool(
+        name="ImageCaptioner",
+        func=caption_image,
+        description="Provides a caption for an image. Input is the image file path."
+    )
+)
 
 # Use the underlying TavilySearch tool manually
 raw_tavily_tool = TavilySearch()
@@ -52,7 +66,6 @@ search_tool = Tool(
 )
 
 tools.append(search_tool)
-
 
 def read_file_content(file_path: str) -> str:
     try:
@@ -82,7 +95,6 @@ tools.append(
         description="Summarizes any long text. Input should be a long text string to summarize."
     )
 )
-
 
 tools.append(
     Tool(
