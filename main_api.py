@@ -1,18 +1,22 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, Form, Request
 from pydantic import BaseModel
 from langchain.agents import initialize_agent, AgentType
 from langchain.chat_models import ChatOpenAI
 from agent_tools import tools
-import os
-from fastapi import File, UploadFile, Form
+from gpt4o_image import gpt4o_image_qa
+from pdf_qa import (
+    extract_text_from_pdfs, chunk_text, create_vector_store,
+    get_top_chunks, ask_with_context
+)
 from dotenv import load_dotenv
+import os
 
 load_dotenv()
 app = FastAPI()
 
 class ChatRequest(BaseModel):
     user_id: str
-    message: str  # this is the user query
+    message: str
 
 llm = ChatOpenAI(
     model="gpt-3.5-turbo-0125",
@@ -20,48 +24,74 @@ llm = ChatOpenAI(
     openai_api_key=os.getenv("OPENAI_API_KEY")
 )
 
-def needs_tools(message: str) -> bool:
-    # Naive heuristic — improve later
-    trigger_words = ["calculate", "web", "search", "code", "file", "upload", "read", "extract", "*", "/", "+", "-", "integrate", "solve", "open"]
-    return any(word in message.lower() for word in trigger_words)
+agent = initialize_agent(
+    tools=tools,
+    llm=llm,
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True,
+    max_iterations=10
+)
 
-agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=False)
+@app.post("/chat")
+def chat(req: ChatRequest):
+    try:
+        message = req.message.strip()
+        lower = message.lower()
 
-@app.post("/chat-file")
-async def chat_with_file(
-    user_id: str = Form(...),
-    message: str = Form(...),
+        # Explicit trigger words for tools
+        tool_patterns = [
+            "calculate", "math", "evaluate", "run python", "execute python", 
+            "use the pythonexecutor", "python code", "what is the output", "web search", 
+            "search", "summarize", "file", "document", "rag", "csv", "pdf"
+        ]
+
+        # Use agent/tools only if prompt *clearly* matches a tool trigger
+        if any(pat in lower for pat in tool_patterns):
+            response = agent.run(message)
+            # If agent/tool fails, fallback to LLM
+            if not response or (isinstance(response, str) and (
+                response.strip() == "" or
+                response.strip().lower() in ["none", "null", "no response"] or
+                response.strip().startswith("NO_EXEC_RESULT")
+            )):
+                response = llm.predict(message)
+        else:
+            # Default: use LLM for all general chat, info, and non-tool questions
+            response = llm.predict(message)
+
+        if not response or response.strip().lower() in ["none", "null", "no response"]:
+            response = "Sorry, I'm having trouble answering that."
+        return {"response": response}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.post("/gpt4o-image-gen")
+async def gpt4o_image_gen(
+    prompt: str = Form(...),
     file: UploadFile = File(...)
 ):
     try:
-        content = await file.read()
-        filename = file.filename.lower()
-
-        if filename.endswith(".pdf"):
-            import fitz  # PyMuPDF
-            from io import BytesIO
-            pdf = fitz.open(stream=BytesIO(content), filetype="pdf")
-            text = "\n".join([page.get_text() for page in pdf])
-        elif filename.endswith(".csv"):
-            import pandas as pd
-            from io import StringIO
-            df = pd.read_csv(StringIO(content.decode()))
-            text = df.to_csv(index=False)
-        elif filename.endswith(".md") or filename.endswith(".txt"):
-            text = content.decode()
-        else:
-            return {"error": "Unsupported file format"}
-
-        # Inject file content into user query
-        full_input = f"The user uploaded this file content:\n{text[:2000]}...\n\nTheir question is:\n{message}"
-
-        if needs_tools(message):
-            response = agent.run(full_input)
-        else:
-            response = llm.predict(full_input)
-
+        image_path = f"temp_{file.filename}"
+        with open(image_path, "wb") as buffer:
+            buffer.write(await file.read())
+        response = gpt4o_image_qa(image_path, prompt)
         return {"response": response}
+    except Exception as e:
+        return {"error": str(e)}
 
+@app.post("/doc-qa")
+async def doc_qa(request: Request):
+    try:
+        data = await request.json()
+        query = data.get("query")
+        doc_folder = "uploaded_docs"
+        text = extract_text_from_pdfs(doc_folder)
+        chunks = chunk_text(text)
+        index, chunks = create_vector_store(chunks)
+        top_chunks = get_top_chunks(query, chunks, index)
+        answer = ask_with_context(query, top_chunks)
+        return {"answer": answer}
     except Exception as e:
         return {"error": str(e)}
 
