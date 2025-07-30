@@ -1,0 +1,10 @@
+[
+    {
+      "input": "What is photosynthesis?",
+      "expected": "Photosynthesis is the process by which plants convert sunlight into energy."
+    },
+    {
+      "input": "Summarize the meaning of gravity.",
+      "expected": "Gravity is the force that attracts two bodies toward each other."
+    }
+  ]
